@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "quantumarrows",
+  "version": "${project.version}",
+  "name": "QuantumArrows",
+  "description": "Middle-click while holding a bow to open a radial arrow picker. Release the wheel toward an arrow type to move it into the target slot.",
+  "authors": ["qmftm"],
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.quantumarrows.client.QuantumArrowsClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-lifecycle-events-v1": "*"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "quantumarrows.wheel.title": "Arrow Wheel",
+  "quantumarrows.wheel.hint": "Point at an arrow and release",
+  "quantumarrows.wheel.target": "Target: %s",
+  "quantumarrows.slot.hotbar": "hotbar slot %s",
+  "quantumarrows.slot.inventory": "row %s, slot %s",
+  "quantumarrows.slot.offhand": "offhand",
+  "quantumarrows.message.no_arrows": "No arrows in your inventory",
+  "quantumarrows.message.already": "%s is already in the target slot",
+  "quantumarrows.message.moved": "Arrow set: %s"
+}

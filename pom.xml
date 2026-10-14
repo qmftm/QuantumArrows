@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.quantumarrows</groupId>
+    <artifactId>quantumarrows-parent</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <name>QuantumArrows (parent)</name>
+
+    <!--
+      Build with:  mvn package
+      Output:      mod/target/quantumarrows-<version>.jar
+
+      Minecraft 26.x ships unobfuscated, so the mod compiles directly against the
+      vanilla client jar - no Loom/remapping is needed. The "minecraft" module
+      downloads that jar from Mojang and exposes it to the reactor as an artifact.
+
+      To target another 26.x release, update minecraft.version, the client jar
+      URL/SHA-1 (from piston-meta), the Fabric versions below and the
+      "minecraft" range in mod/src/main/resources/fabric.mod.json.
+    -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>25</maven.compiler.release>
+
+        <minecraft.version>26.3</minecraft.version>
+        <minecraft.client.url>https://piston-data.mojang.com/v1/objects/e877b6a07acd633fb3bb475002175cec036e7b87/client.jar</minecraft.client.url>
+        <minecraft.client.sha1>e877b6a07acd633fb3bb475002175cec036e7b87</minecraft.client.sha1>
+
+        <fabric.loader.version>0.19.5</fabric.loader.version>
+        <fabric.api.base.version>2.0.6+fcdff87f5d</fabric.api.base.version>
+        <fabric.lifecycle.events.version>4.1.9+ffef5f675d</fabric.lifecycle.events.version>
+    </properties>
+
+    <modules>
+        <module>minecraft</module>
+        <module>mod</module>
+    </modules>
+</project>
