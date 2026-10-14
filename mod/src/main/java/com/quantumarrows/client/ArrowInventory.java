@@ -2,6 +2,7 @@ package com.quantumarrows.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerInput;
@@ -9,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ProjectileWeaponItem;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -83,6 +85,9 @@ public final class ArrowInventory {
         for (int t = 0; t < icons.size(); t++) {
             types.add(new ArrowType(icons.get(t), totals.get(t)[0], List.copyOf(slots.get(t))));
         }
+        // Fixed order so each arrow type keeps its spot on the wheel after stacks move around.
+        types.sort(Comparator.comparingInt((ArrowType type) -> BuiltInRegistries.ITEM.getId(type.icon().getItem()))
+                .thenComparing(type -> type.icon().getHoverName().getString()));
         return types;
     }
 
@@ -122,18 +127,6 @@ public final class ArrowInventory {
             minecraft.gameMode.handleContainerInput(containerId, sourceSlot, 0, ContainerInput.PICKUP, player);
         }
         player.sendOverlayMessage(Component.translatable("quantumarrows.message.moved", type.icon().getHoverName()));
-    }
-
-    public static Component describeSlot(int slot) {
-        if (slot == OFFHAND) {
-            return Component.translatable("quantumarrows.slot.offhand");
-        }
-        if (slot < HOTBAR_SIZE) {
-            return Component.translatable("quantumarrows.slot.hotbar", slot + 1);
-        }
-        int row = (slot - HOTBAR_SIZE) / 9 + 1;
-        int column = (slot - HOTBAR_SIZE) % 9 + 1;
-        return Component.translatable("quantumarrows.slot.inventory", row, column);
     }
 
     private static int toMenuSlot(int inventoryIndex) {

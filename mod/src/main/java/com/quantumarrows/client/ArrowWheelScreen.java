@@ -17,13 +17,20 @@ import java.util.List;
 public final class ArrowWheelScreen extends Screen {
     private static final int DEAD_ZONE = 14;
     private static final int RING_HALF_WIDTH = 15;
-    private static final int HIGHLIGHT_RADIUS = 13;
+    // Shape metrics in GUI units; meshes are rasterized at the native pixel resolution.
+    private static final double HIGHLIGHT_INSET = 1.5;
+    private static final double HIGHLIGHT_GAP = 1.0;
+    private static final double DIVIDER_HALF_WIDTH = 0.35;
+    private static final double BORDER_HALF_WIDTH = 0.3;
+    private static final double KNOB_RADIUS = 2.5;
+    private static final int COUNT_MAX_WIDTH = 16;
 
     private static final int COLOR_DIM = 0x40000000;
     private static final int COLOR_RING = 0xA0101018;
-    private static final int COLOR_DIVIDER = 0x60FFFFFF;
+    private static final int COLOR_BORDER = 0x50FFFFFF;
+    private static final int COLOR_DIVIDER = 0x50FFFFFF;
     private static final int COLOR_HIGHLIGHT = 0xC0E0B040;
-    private static final int COLOR_POINTER = 0xFFE0B040;
+    private static final int COLOR_KNOB = 0xFFE0B040;
     private static final int COLOR_TEXT = 0xFFFFFFFF;
     private static final int COLOR_SUBTEXT = 0xFFB0B0B0;
 
@@ -32,6 +39,13 @@ public final class ArrowWheelScreen extends Screen {
     private final int radius;
     private int hovered = -1;
     private boolean finished;
+
+    private int meshScale;
+    private VectorMesh ringMesh;
+    private VectorMesh borderMesh;
+    private VectorMesh dividerMesh;
+    private VectorMesh[] highlightMeshes;
+    private VectorMesh[] knobMeshes;
 
     public ArrowWheelScreen(List<ArrowInventory.ArrowType> types, int targetSlot) {
         super(Component.translatable("quantumarrows.wheel.title"));
@@ -137,37 +151,33 @@ public final class ArrowWheelScreen extends Screen {
         int count = types.size();
         double step = Math.PI * 2 / count;
 
-        fillRing(graphics, cx, cy, radius - RING_HALF_WIDTH, radius + RING_HALF_WIDTH, COLOR_RING);
-        if (count > 1) {
-            for (int i = 0; i < count; i++) {
-                double a = (i + 0.5) * step;
-                for (int r = radius - RING_HALF_WIDTH + 2; r <= radius + RING_HALF_WIDTH - 2; r++) {
-                    int px = cx + (int) Math.round(Math.sin(a) * r);
-                    int py = cy - (int) Math.round(Math.cos(a) * r);
-                    graphics.fill(px, py, px + 1, py + 1, COLOR_DIVIDER);
-                }
-            }
+        int scale = minecraft.getWindow().getGuiScale();
+        if (scale != meshScale) {
+            buildMeshes(scale);
         }
-
+        int pcx = cx * scale;
+        int pcy = cy * scale;
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(1.0f / scale);
+        ringMesh.draw(graphics, pcx, pcy, COLOR_RING);
         if (hovered >= 0) {
-            double a = hovered * step;
-            int hx = cx + (int) Math.round(Math.sin(a) * radius);
-            int hy = cy - (int) Math.round(Math.cos(a) * radius);
-            fillDisc(graphics, hx, hy, HIGHLIGHT_RADIUS, COLOR_HIGHLIGHT);
-            for (int r = DEAD_ZONE / 2; r < radius - RING_HALF_WIDTH; r += 3) {
-                int px = cx + (int) Math.round(Math.sin(a) * r);
-                int py = cy - (int) Math.round(Math.cos(a) * r);
-                graphics.fill(px - 1, py - 1, px + 1, py + 1, COLOR_POINTER);
-            }
+            highlightMesh(hovered).draw(graphics, pcx, pcy, COLOR_HIGHLIGHT);
+            knobMesh(hovered).draw(graphics, pcx, pcy, COLOR_KNOB);
         }
+        if (dividerMesh != null) {
+            dividerMesh.draw(graphics, pcx, pcy, COLOR_DIVIDER);
+        }
+        borderMesh.draw(graphics, pcx, pcy, COLOR_BORDER);
+        graphics.pose().popMatrix();
 
         for (int i = 0; i < count; i++) {
             ArrowInventory.ArrowType type = types.get(i);
             double a = i * step;
-            int ix = cx + (int) Math.round(Math.sin(a) * radius) - 8;
-            int iy = cy - (int) Math.round(Math.cos(a) * radius) - 8;
-            graphics.item(type.icon(), ix, iy);
-            graphics.itemDecorations(font, type.icon(), ix, iy, String.valueOf(type.total()));
+            graphics.pose().pushMatrix();
+            graphics.pose().translate((float) (cx + Math.sin(a) * radius - 8), (float) (cy - Math.cos(a) * radius - 8));
+            graphics.item(type.icon(), 0, 0);
+            drawCount(graphics, formatCount(type.total()));
+            graphics.pose().popMatrix();
         }
 
         // Text goes above the ring so it never overlaps the hotbar/health bar.
@@ -178,29 +188,90 @@ public final class ArrowWheelScreen extends Screen {
         } else {
             graphics.centeredText(font, Component.translatable("quantumarrows.wheel.hint"), cx, textY, COLOR_TEXT);
         }
-        graphics.centeredText(font,
-                Component.translatable("quantumarrows.wheel.target", ArrowInventory.describeSlot(targetSlot)),
+        graphics.centeredText(font, Component.translatable("quantumarrows.wheel.target", targetSlot),
                 cx, textY + font.lineHeight + 3, COLOR_SUBTEXT);
     }
 
-    private static void fillDisc(GuiGraphicsExtractor graphics, int cx, int cy, int r, int color) {
-        for (int dy = -r; dy <= r; dy++) {
-            int dx = (int) Math.sqrt(r * r - dy * dy);
-            graphics.fill(cx - dx, cy + dy, cx + dx + 1, cy + dy + 1, color);
-        }
+    /** Bottom-right count like vanilla's, shrunk when wider than the slot (e.g. "1.2K"). */
+    private void drawCount(GuiGraphicsExtractor graphics, String text) {
+        int textWidth = font.width(text);
+        float textScale = textWidth > COUNT_MAX_WIDTH ? (float) COUNT_MAX_WIDTH / textWidth : 1.0f;
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(17 - textWidth * textScale, 9 + 8 * (1 - textScale));
+        graphics.pose().scale(textScale);
+        graphics.text(font, text, 0, 0, COLOR_TEXT, true);
+        graphics.pose().popMatrix();
     }
 
-    private static void fillRing(GuiGraphicsExtractor graphics, int cx, int cy, int inner, int outer, int color) {
-        for (int dy = -outer; dy <= outer; dy++) {
-            int xo = (int) Math.sqrt(outer * outer - dy * dy);
-            int y = cy + dy;
-            if (Math.abs(dy) >= inner) {
-                graphics.fill(cx - xo, y, cx + xo + 1, y + 1, color);
-            } else {
-                int xi = (int) Math.sqrt(inner * inner - dy * dy);
-                graphics.fill(cx - xo, y, cx - xi, y + 1, color);
-                graphics.fill(cx + xi + 1, y, cx + xo + 1, y + 1, color);
-            }
+    /** Counts of 1000 or more are shortened to one decimal, e.g. 1234 -> "1.2K" (rounded down). */
+    public static String formatCount(int count) {
+        if (count < 1000) {
+            return String.valueOf(count);
         }
+        if (count < 10000) {
+            int tenths = count / 100;
+            return tenths / 10 + "." + tenths % 10 + "K";
+        }
+        return count / 1000 + "K";
+    }
+
+    private void buildMeshes(int scale) {
+        meshScale = scale;
+        double r = radius * scale;
+        double w = RING_HALF_WIDTH * scale;
+        int count = types.size();
+        double step = Math.PI * 2 / count;
+
+        ringMesh = VectorMesh.rasterize((x, y) -> VectorMesh.ring(x, y, r, w), r - w, r + w);
+        double bw = Math.max(0.6, BORDER_HALF_WIDTH * scale);
+        borderMesh = VectorMesh.rasterize(
+                (x, y) -> Math.abs(VectorMesh.ring(x, y, r, w - bw)) - bw, r - w, r + w);
+        if (count > 1) {
+            double dw = Math.max(0.6, DIVIDER_HALF_WIDTH * scale);
+            double r0 = r - w + 2 * scale;
+            double r1 = r + w - 2 * scale;
+            dividerMesh = VectorMesh.rasterize((x, y) -> {
+                double best = Double.MAX_VALUE;
+                for (int i = 0; i < count; i++) {
+                    best = Math.min(best, VectorMesh.radialSegment(x, y, (i + 0.5) * step, r0, r1, dw));
+                }
+                return best;
+            }, r0, r1);
+        } else {
+            dividerMesh = null;
+        }
+        highlightMeshes = new VectorMesh[count];
+        knobMeshes = new VectorMesh[count];
+    }
+
+    private VectorMesh highlightMesh(int index) {
+        if (highlightMeshes[index] == null) {
+            int scale = meshScale;
+            double r = radius * scale;
+            double w = (RING_HALF_WIDTH - HIGHLIGHT_INSET) * scale;
+            int count = types.size();
+            double step = Math.PI * 2 / count;
+            double angle = index * step;
+            double gap = HIGHLIGHT_GAP * scale;
+            highlightMeshes[index] = VectorMesh.rasterize(count == 1
+                    ? (x, y) -> VectorMesh.ring(x, y, r, w)
+                    : (x, y) -> Math.max(VectorMesh.ring(x, y, r, w), VectorMesh.wedge(x, y, angle, step / 2) + gap),
+                    r - w, r + w);
+        }
+        return highlightMeshes[index];
+    }
+
+    private VectorMesh knobMesh(int index) {
+        if (knobMeshes[index] == null) {
+            int scale = meshScale;
+            double angle = index * Math.PI * 2 / types.size();
+            double distance = (radius - RING_HALF_WIDTH - KNOB_RADIUS - 2) * scale;
+            double kx = Math.sin(angle) * distance;
+            double ky = -Math.cos(angle) * distance;
+            double kr = KNOB_RADIUS * scale;
+            knobMeshes[index] = VectorMesh.rasterize(
+                    (x, y) -> VectorMesh.disc(x, y, kx, ky, kr), distance - kr, distance + kr);
+        }
+        return knobMeshes[index];
     }
 }

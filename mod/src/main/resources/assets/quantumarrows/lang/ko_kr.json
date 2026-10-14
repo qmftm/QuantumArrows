@@ -1,10 +1,7 @@
 {
   "quantumarrows.wheel.title": "화살 선택",
   "quantumarrows.wheel.hint": "화살 방향으로 마우스를 옮기고 휠을 놓으세요",
-  "quantumarrows.wheel.target": "대상 칸: %s",
-  "quantumarrows.slot.hotbar": "핫바 %s번째",
-  "quantumarrows.slot.inventory": "%s번째 줄 %s번째",
-  "quantumarrows.slot.offhand": "왼손",
+  "quantumarrows.wheel.target": "대상 슬롯: %s번",
   "quantumarrows.message.no_arrows": "인벤토리에 화살이 없습니다",
   "quantumarrows.message.already": "%s(이)가 이미 대상 칸에 있습니다",
   "quantumarrows.message.moved": "화살 변경: %s"
