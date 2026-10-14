@@ -8,6 +8,6 @@
   "key.category.quantumarrows.main": "QuantumArrows",
   "quantumarrows.settings.title": "QuantumArrows Settings",
   "quantumarrows.settings.activation": "Activation",
-  "quantumarrows.settings.activation.hint": "HOLD ON BOW: only while holding a bow or crossbow. EVERYTHING: always.",
+  "quantumarrows.settings.activation.hint": "HOLD ON BOW: only while holding a bow or crossbow. EVERYTHING: always. DISABLE: never.",
   "quantumarrows.settings.key": "Wheel Key: %s"
 }

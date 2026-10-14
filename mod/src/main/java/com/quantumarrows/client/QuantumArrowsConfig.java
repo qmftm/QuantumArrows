@@ -29,7 +29,9 @@ public final class QuantumArrowsConfig {
         /** Only while a bow or crossbow is held (the wheel key keeps its normal function otherwise). */
         HOLD_ON_BOW("HOLD ON BOW"),
         /** Always, whatever is held. */
-        EVERYTHING("EVERYTHING");
+        EVERYTHING("EVERYTHING"),
+        /** Never opens; the key keeps only its other bindings' behavior. */
+        DISABLE("DISABLE");
 
         private final String label;
 
