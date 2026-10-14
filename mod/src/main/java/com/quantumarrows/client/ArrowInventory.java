@@ -186,7 +186,6 @@ public final class ArrowInventory {
             click(minecraft, player, move[0]);
             click(minecraft, player, move[1]);
         }
-        player.sendOverlayMessage(Component.translatable("quantumarrows.message.moved", type.icon().getHoverName()));
     }
 
     private static void click(Minecraft minecraft, LocalPlayer player, int inventoryIndex) {

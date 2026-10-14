@@ -45,6 +45,7 @@ public final class ArrowWheelScreen extends Screen {
     private static final double CHEVRON_SIZE = 4.0;
     private static final double CHEVRON_HALF_WIDTH = 0.9;
     private static final int COUNT_MAX_WIDTH = 16;
+    private static final int CURRENT_ITEM_BOTTOM_OFFSET = 68;
 
     private static final int COLOR_DIM = 0x40000000;
     private static final int COLOR_RING = 0xA0101018;
@@ -265,6 +266,8 @@ public final class ArrowWheelScreen extends Screen {
             graphics.centeredText(font, (page + 1) + "/" + pageCount, cx, cy + 7, COLOR_SUBTEXT);
         }
 
+        extractCurrentItem(graphics, cx);
+
         // Text goes above the ring so it never overlaps the hotbar/health bar.
         int textY = Math.max(4, cy - radius - RING_HALF_WIDTH - 6 - font.lineHeight * 2 - 3);
         if (hoveredType >= 0) {
@@ -276,6 +279,22 @@ public final class ArrowWheelScreen extends Screen {
         } else {
             graphics.centeredText(font, Component.translatable("quantumarrows.wheel.hint"), cx, textY, COLOR_TEXT);
         }
+    }
+
+    /** Item the selection will replace, drawn where vanilla's action-bar message sits (just above the hotbar). */
+    private void extractCurrentItem(GuiGraphicsExtractor graphics, int cx) {
+        ItemStack current = minecraft.player.getInventory().getItem(targetSlot);
+        if (current.isEmpty()) {
+            return;
+        }
+        Component label = current.getCount() > 1
+                ? Component.empty().append(current.getHoverName()).append(" x" + current.getCount())
+                : current.getHoverName();
+        int labelWidth = font.width(label);
+        int left = cx - (16 + 4 + labelWidth) / 2;
+        int y = height - CURRENT_ITEM_BOTTOM_OFFSET;
+        graphics.item(current, left, y - 4);
+        graphics.text(font, label, left + 20, y, COLOR_TEXT, true);
     }
 
     /** Bottom-right count like vanilla's, shrunk when wider than the slot (e.g. "1.2K"). */
