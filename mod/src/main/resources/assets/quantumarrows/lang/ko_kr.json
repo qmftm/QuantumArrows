@@ -1,8 +1,8 @@
 {
   "quantumarrows.wheel.title": "화살 선택",
   "quantumarrows.wheel.hint": "화살 방향으로 마우스를 옮기고 휠을 놓으세요",
-  "quantumarrows.wheel.target": "대상 슬롯: %s번",
   "quantumarrows.message.no_arrows": "인벤토리에 화살이 없습니다",
   "quantumarrows.message.already": "%s(이)가 이미 대상 칸에 있습니다",
-  "quantumarrows.message.moved": "화살 변경: %s"
+  "quantumarrows.message.moved": "화살 변경: %s",
+  "quantumarrows.wheel.blocked": "뒤쪽 빈 칸이 부족해 앞쪽 화살을 정리할 수 없습니다 (대상 슬롯으로만 이동)"
 }

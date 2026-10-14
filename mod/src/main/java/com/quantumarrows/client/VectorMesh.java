@@ -15,6 +15,8 @@ final class VectorMesh {
         double at(double x, double y);
     }
 
+    private static final int STRIDE = 4;
+
     // Packed runs: x0, x1 (exclusive), y, coverage (0-255).
     private final int[] runs;
     private final int size;
@@ -54,36 +56,37 @@ final class VectorMesh {
                 }
                 if (alpha != runAlpha || x == -xMax) {
                     if (runAlpha > 0 && x > runStart) {
-                        if (n + 4 > out.length) {
-                            out = Arrays.copyOf(out, out.length * 2);
-                        }
-                        out[n++] = runStart;
-                        out[n++] = x;
-                        out[n++] = y;
-                        out[n++] = runAlpha;
+                        out = append(out, n, runStart, x, y, runAlpha);
+                        n += STRIDE;
                     }
                     runStart = x;
                     runAlpha = alpha;
                 }
             }
             if (runAlpha > 0) {
-                if (n + 4 > out.length) {
-                    out = Arrays.copyOf(out, out.length * 2);
-                }
-                out[n++] = runStart;
-                out[n++] = xMax + 1;
-                out[n++] = y;
-                out[n++] = runAlpha;
+                out = append(out, n, runStart, xMax + 1, y, runAlpha);
+                n += STRIDE;
             }
         }
         return new VectorMesh(out, n);
+    }
+
+    private static int[] append(int[] out, int n, int x0, int x1, int y, int alpha) {
+        if (n + STRIDE > out.length) {
+            out = Arrays.copyOf(out, out.length * 2);
+        }
+        out[n] = x0;
+        out[n + 1] = x1;
+        out[n + 2] = y;
+        out[n + 3] = alpha;
+        return out;
     }
 
     /** Draws the mesh centered at ({@code cx}, {@code cy}) in physical pixels; the pose must already be unscaled. */
     void draw(GuiGraphicsExtractor graphics, int cx, int cy, int argb) {
         int baseAlpha = argb >>> 24;
         int rgb = argb & 0xFFFFFF;
-        for (int i = 0; i < size; i += 4) {
+        for (int i = 0; i < size; i += STRIDE) {
             int alpha = runs[i + 3] * baseAlpha / 255;
             int y = cy + runs[i + 2];
             graphics.fill(cx + runs[i], y, cx + runs[i + 1], y + 1, alpha << 24 | rgb);
@@ -97,10 +100,22 @@ final class VectorMesh {
         return Math.abs(Math.sqrt(x * x + y * y) - radius) - halfWidth;
     }
 
-    static double disc(double x, double y, double cx, double cy, double radius) {
-        double dx = x - cx;
-        double dy = y - cy;
-        return Math.sqrt(dx * dx + dy * dy) - radius;
+    /**
+     * Isosceles triangle whose tip points away from the origin along {@code angle} (clockwise from
+     * straight up). The tip is at {@code tipRadius}, the base {@code length} closer in and
+     * {@code halfBase} to each side. Signed distance is exact along the edges, which is all coverage needs.
+     */
+    static double triangle(double x, double y, double angle, double tipRadius, double length, double halfBase) {
+        double ux = Math.sin(angle);
+        double uy = -Math.cos(angle);
+        double along = x * ux + y * uy - (tipRadius - length);
+        double across = Math.abs(-x * uy + y * ux);
+        double baseDist = -along;
+        double edgeLen = Math.sqrt(length * length + halfBase * halfBase);
+        // The slanted side runs from the tip (length, 0) to the base corner (0, halfBase) in
+        // (along, across) coordinates; its outward normal is (halfBase, length) / edgeLen.
+        double sideDist = ((along - length) * halfBase + across * length) / edgeLen;
+        return Math.max(baseDist, sideDist);
     }
 
     /**
@@ -113,6 +128,16 @@ final class VectorMesh {
         delta = Math.abs(Math.IEEEremainder(delta, Math.PI * 2));
         double over = Math.clamp(delta - halfAngle, -Math.PI / 2, Math.PI / 2);
         return r * Math.sin(over);
+    }
+
+    /** Line segment from ({@code ax}, {@code ay}) to ({@code bx}, {@code by}), {@code halfWidth} thick. */
+    static double segment(double x, double y, double ax, double ay, double bx, double by, double halfWidth) {
+        double vx = bx - ax;
+        double vy = by - ay;
+        double t = Math.clamp(((x - ax) * vx + (y - ay) * vy) / (vx * vx + vy * vy), 0, 1);
+        double ex = x - ax - vx * t;
+        double ey = y - ay - vy * t;
+        return Math.sqrt(ex * ex + ey * ey) - halfWidth;
     }
 
     /** Line segment along {@code angle} from radius {@code r0} to {@code r1}, {@code halfWidth} thick. */

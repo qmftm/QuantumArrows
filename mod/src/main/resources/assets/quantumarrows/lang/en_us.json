@@ -1,8 +1,8 @@
 {
   "quantumarrows.wheel.title": "Arrow Wheel",
   "quantumarrows.wheel.hint": "Point at an arrow and release",
-  "quantumarrows.wheel.target": "Target slot: %s",
   "quantumarrows.message.no_arrows": "No arrows in your inventory",
   "quantumarrows.message.already": "%s is already in the target slot",
-  "quantumarrows.message.moved": "Arrow set: %s"
+  "quantumarrows.message.moved": "Arrow set: %s",
+  "quantumarrows.wheel.blocked": "Not enough room behind the target slot to move other arrows: only this arrow will be moved"
 }

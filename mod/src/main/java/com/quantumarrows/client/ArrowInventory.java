@@ -2,7 +2,6 @@ package com.quantumarrows.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerInput;
@@ -10,7 +9,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ProjectileWeaponItem;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -46,8 +44,12 @@ public final class ArrowInventory {
         return null;
     }
 
-    public static List<ArrowType> collect(LocalPlayer player, ItemStack weapon) {
-        Predicate<ItemStack> ammo = ((ProjectileWeaponItem) weapon.getItem()).getAllSupportedProjectiles();
+    public static Predicate<ItemStack> ammoOf(ItemStack weapon) {
+        return ((ProjectileWeaponItem) weapon.getItem()).getAllSupportedProjectiles();
+    }
+
+    /** Arrow types in inventory order (by the first slot holding each type). */
+    public static List<ArrowType> collect(LocalPlayer player, Predicate<ItemStack> ammo) {
         Inventory inventory = player.getInventory();
         List<ItemStack> icons = new ArrayList<>();
         List<int[]> totals = new ArrayList<>();
@@ -85,48 +87,111 @@ public final class ArrowInventory {
         for (int t = 0; t < icons.size(); t++) {
             types.add(new ArrowType(icons.get(t), totals.get(t)[0], List.copyOf(slots.get(t))));
         }
-        // Fixed order so each arrow type keeps its spot on the wheel after stacks move around.
-        types.sort(Comparator.comparingInt((ArrowType type) -> BuiltInRegistries.ITEM.getId(type.icon().getItem()))
-                .thenComparing(type -> type.icon().getHoverName().getString()));
         return types;
     }
 
-    /** Moves the largest stack of {@code type} into {@code target} by simulating inventory clicks. */
-    public static void moveToSlot(Minecraft minecraft, ArrowType type, int target) {
+    /**
+     * What selecting a type will do: move its largest stack into the target (unless the target
+     * already holds it), then move other ammo the weapon would use first (offhand and slots
+     * before the target) into empty slots after the target.
+     *
+     * @param source   slot to swap into the target, or -1 if the target already holds the type
+     * @param moves    {from, to} pairs for the cleanup, empty when not needed or not possible
+     * @param blocked  true when other ammo comes first but there is not enough room behind the target
+     */
+    public record Plan(int source, List<int[]> moves, boolean blocked) {
+        public boolean isNoop() {
+            return source < 0 && moves.isEmpty();
+        }
+    }
+
+    public static Plan plan(LocalPlayer player, Predicate<ItemStack> ammo, ArrowType type, int target) {
+        Inventory inventory = player.getInventory();
+        ItemStack[] items = new ItemStack[OFFHAND + 1];
+        for (int i = 0; i < items.length; i++) {
+            items[i] = i < MAIN_SIZE || i == OFFHAND ? inventory.getItem(i) : ItemStack.EMPTY;
+        }
+
+        int source = -1;
+        if (!ItemStack.isSameItemSameComponents(items[target], type.icon())) {
+            int best = 0;
+            for (int index : type.slots()) {
+                ItemStack stack = items[index];
+                if (index != target && ItemStack.isSameItemSameComponents(stack, type.icon()) && stack.getCount() > best) {
+                    best = stack.getCount();
+                    source = index;
+                }
+            }
+            if (source >= 0) {
+                ItemStack swapped = items[target];
+                items[target] = items[source];
+                items[source] = swapped;
+            }
+        }
+
+        // Projectile weapons look at the offhand first, then inventory slots in index order.
+        List<Integer> blockers = new ArrayList<>();
+        if (target != OFFHAND) {
+            List<Integer> before = new ArrayList<>();
+            before.add(OFFHAND);
+            for (int i = 0; i < target; i++) {
+                before.add(i);
+            }
+            for (int index : before) {
+                ItemStack stack = items[index];
+                if (!stack.isEmpty() && ammo.test(stack) && !ItemStack.isSameItemSameComponents(stack, type.icon())) {
+                    blockers.add(index);
+                }
+            }
+        }
+        List<Integer> free = new ArrayList<>();
+        if (target != OFFHAND) {
+            for (int i = target + 1; i < MAIN_SIZE; i++) {
+                if (items[i].isEmpty()) {
+                    free.add(i);
+                }
+            }
+        }
+        if (blockers.size() > free.size()) {
+            return new Plan(source, List.of(), true);
+        }
+        List<int[]> moves = new ArrayList<>(blockers.size());
+        for (int i = 0; i < blockers.size(); i++) {
+            moves.add(new int[]{blockers.get(i), free.get(i)});
+        }
+        return new Plan(source, moves, false);
+    }
+
+    /** Applies {@link #plan} with simulated inventory clicks, which the server validates like normal clicks. */
+    public static void select(Minecraft minecraft, Predicate<ItemStack> ammo, ArrowType type, int target) {
         LocalPlayer player = minecraft.player;
         if (player == null || minecraft.gameMode == null || player.containerMenu != player.inventoryMenu) {
             return;
         }
-        Inventory inventory = player.getInventory();
-        if (ItemStack.isSameItemSameComponents(inventory.getItem(target), type.icon())) {
+        Plan plan = plan(player, ammo, type, target);
+        if (plan.isNoop()) {
             player.sendOverlayMessage(Component.translatable("quantumarrows.message.already", type.icon().getHoverName()));
             return;
         }
-
-        int source = -1;
-        int best = 0;
-        for (int index : type.slots()) {
-            ItemStack stack = inventory.getItem(index);
-            if (index != target && ItemStack.isSameItemSameComponents(stack, type.icon()) && stack.getCount() > best) {
-                best = stack.getCount();
-                source = index;
+        if (plan.source() >= 0) {
+            // Pick up the arrows, drop them on the target (swapping out whatever was there),
+            // then put the swapped-out stack back where the arrows came from.
+            click(minecraft, player, plan.source());
+            click(minecraft, player, target);
+            if (!player.inventoryMenu.getCarried().isEmpty()) {
+                click(minecraft, player, plan.source());
             }
         }
-        if (source < 0) {
-            return;
-        }
-
-        int containerId = player.inventoryMenu.containerId;
-        int sourceSlot = toMenuSlot(source);
-        int targetSlot = toMenuSlot(target);
-        // Pick up the arrows, drop them on the target (swapping out whatever was there),
-        // then put the swapped-out stack back where the arrows came from.
-        minecraft.gameMode.handleContainerInput(containerId, sourceSlot, 0, ContainerInput.PICKUP, player);
-        minecraft.gameMode.handleContainerInput(containerId, targetSlot, 0, ContainerInput.PICKUP, player);
-        if (!player.inventoryMenu.getCarried().isEmpty()) {
-            minecraft.gameMode.handleContainerInput(containerId, sourceSlot, 0, ContainerInput.PICKUP, player);
+        for (int[] move : plan.moves()) {
+            click(minecraft, player, move[0]);
+            click(minecraft, player, move[1]);
         }
         player.sendOverlayMessage(Component.translatable("quantumarrows.message.moved", type.icon().getHoverName()));
+    }
+
+    private static void click(Minecraft minecraft, LocalPlayer player, int inventoryIndex) {
+        minecraft.gameMode.handleContainerInput(player.inventoryMenu.containerId, toMenuSlot(inventoryIndex), 0,
+                ContainerInput.PICKUP, player);
     }
 
     private static int toMenuSlot(int inventoryIndex) {

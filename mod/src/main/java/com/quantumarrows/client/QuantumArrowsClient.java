@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 public final class QuantumArrowsClient implements ClientModInitializer {
     private static QuantumArrowsConfig config;
@@ -34,11 +35,12 @@ public final class QuantumArrowsClient implements ClientModInitializer {
         if (!clicked) {
             return;
         }
-        List<ArrowInventory.ArrowType> types = ArrowInventory.collect(minecraft.player, weapon);
+        Predicate<ItemStack> ammo = ArrowInventory.ammoOf(weapon);
+        List<ArrowInventory.ArrowType> types = ArrowInventory.collect(minecraft.player, ammo);
         if (types.isEmpty()) {
             minecraft.player.sendOverlayMessage(Component.translatable("quantumarrows.message.no_arrows"));
             return;
         }
-        minecraft.gui.setScreen(new ArrowWheelScreen(types, config.targetSlot));
+        minecraft.gui.setScreen(new ArrowWheelScreen(minecraft.player, types, ammo, config.targetSlot));
     }
 }
