@@ -3,5 +3,11 @@
   "quantumarrows.wheel.hint": "화살 방향으로 마우스를 옮기고 휠을 놓으세요",
   "quantumarrows.message.no_arrows": "인벤토리에 화살이 없습니다",
   "quantumarrows.message.already": "%s(이)가 이미 대상 칸에 있습니다",
-  "quantumarrows.wheel.blocked": "뒤쪽 빈 칸이 부족해 앞쪽 화살을 정리할 수 없습니다 (대상 슬롯으로만 이동)"
+  "quantumarrows.wheel.blocked": "뒤쪽 빈 칸이 부족해 앞쪽 화살을 정리할 수 없습니다 (대상 슬롯으로만 이동)",
+  "key.quantumarrows.wheel": "화살 휠 열기",
+  "key.category.quantumarrows.main": "QuantumArrows",
+  "quantumarrows.settings.title": "QuantumArrows 설정",
+  "quantumarrows.settings.activation": "발동 조건",
+  "quantumarrows.settings.activation.hint": "HOLD ON BOW: 활/쇠뇌를 들고 있을 때만, EVERYTHING: 항상",
+  "quantumarrows.settings.key": "휠 키: %s"
 }

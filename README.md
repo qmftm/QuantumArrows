@@ -8,10 +8,19 @@ Minecraft **26.3** Fabric 클라이언트 모드 — 활(또는 쇠뇌)을 든 �
 |---|---|---|
 | ![](docs/wheel_select.png) | ![](docs/wheel_paged.png) | ![](docs/wheel_warning.png) |
 
+| 모드 메뉴 설정 화면 | 키 설정(Controls) 메뉴 |
+|---|---|
+| ![](docs/settings.png) | ![](docs/controls.png) |
+
 ## 동작
 
-- 활/쇠뇌를 주손 또는 보조손에 들고 **선택 블록 키(기본: 휠 클릭)** 를 누르고 있으면 휠이 열립니다.
-  활을 들고 있을 때는 바닐라 블록 선택이 동작하지 않고, 활이 없을 때는 원래대로 동작합니다.
+- **휠 키(기본: 휠 클릭)** 를 누르고 있으면 휠이 열립니다. 이 키는 `설정 > 조작 > 키 설정`의 *QuantumArrows* 항목과
+  Mod Menu의 모드 설정 화면, 두 곳에서 바꿀 수 있고 서로 같은 설정입니다.
+- 발동 조건은 Mod Menu 설정 화면에서 고릅니다.
+  - `HOLD ON BOW` (기본): 활/쇠뇌를 주손 또는 보조손에 들고 있을 때만 열립니다. 활이 없으면 키는 원래 기능
+    (휠 클릭이면 바닐라 블록 선택)을 그대로 합니다.
+  - `EVERYTHING`: 무엇을 들고 있든 항상 열립니다. 활/쇠뇌가 없으면 일반 화살 기준으로 보여 줍니다.
+  - 휠이 열릴 때는 같은 버튼에 묶인 바닐라 블록 선택은 동작하지 않습니다.
 - 화살은 종류별로 묶어서 보여 줍니다 (일반 / 분광 / 물약 종류별 화살은 각각 따로, 총 개수 표시).
   1000개 이상은 `1.2K`처럼 줄여서 표시합니다.
 - **7종류 이하**는 한 화면에 고정된 순서로 보이고, **8종류 이상**이면 인벤토리 순서대로 한 페이지에 7개씩 보입니다.
@@ -35,9 +44,12 @@ Minecraft **26.3** Fabric 클라이언트 모드 — 활(또는 쇠뇌)을 든 �
 
 ```json
 {
-  "targetSlot": 10
+  "targetSlot": 10,
+  "activation": "HOLD_ON_BOW"
 }
 ```
+
+`activation` 은 `HOLD_ON_BOW` 또는 `EVERYTHING` 이며 Mod Menu 설정 화면에서도 바꿀 수 있습니다.
 
 | 값 | 위치 |
 |---|---|
@@ -57,6 +69,7 @@ mvn package
 
 결과물: `mod/target/quantumarrows-1.0.0.jar` → `.minecraft/mods/`에 넣고,
 [Fabric Loader](https://fabricmc.net/use/) 0.19.5+ 와 Fabric API(26.3용)를 함께 설치하세요.
+설정 화면을 쓰려면 [Mod Menu](https://modrinth.com/mod/modmenu) 21.0.0 이상(26.3용)도 설치합니다 (없어도 모드는 동작하고, 키는 키 설정 메뉴에서 바꿀 수 있습니다).
 
 ### 구조
 

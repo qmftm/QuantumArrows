@@ -3,5 +3,11 @@
   "quantumarrows.wheel.hint": "Point at an arrow and release",
   "quantumarrows.message.no_arrows": "No arrows in your inventory",
   "quantumarrows.message.already": "%s is already in the target slot",
-  "quantumarrows.wheel.blocked": "Not enough room behind the target slot to move other arrows: only this arrow will be moved"
+  "quantumarrows.wheel.blocked": "Not enough room behind the target slot to move other arrows: only this arrow will be moved",
+  "key.quantumarrows.wheel": "Open Arrow Wheel",
+  "key.category.quantumarrows.main": "QuantumArrows",
+  "quantumarrows.settings.title": "QuantumArrows Settings",
+  "quantumarrows.settings.activation": "Activation",
+  "quantumarrows.settings.activation.hint": "HOLD ON BOW: only while holding a bow or crossbow. EVERYTHING: always.",
+  "quantumarrows.settings.key": "Wheel Key: %s"
 }

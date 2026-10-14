@@ -22,6 +22,10 @@
             <url>https://maven.fabricmc.net/</url>
         </repository>
         <repository>
+            <id>terraformers</id>
+            <url>https://maven.terraformersmc.com/releases/</url>
+        </repository>
+        <repository>
             <id>mojang</id>
             <url>https://libraries.minecraft.net/</url>
         </repository>
@@ -54,6 +58,32 @@
             <groupId>net.fabricmc.fabric-api</groupId>
             <artifactId>fabric-lifecycle-events-v1</artifactId>
             <version>${fabric.lifecycle.events.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>net.fabricmc.fabric-api</groupId>
+            <artifactId>fabric-key-mapping-api-v1</artifactId>
+            <version>${fabric.key.mapping.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Optional at runtime: only used by the "modmenu" entrypoint. -->
+        <dependency>
+            <groupId>com.terraformersmc</groupId>
+            <artifactId>modmenu</artifactId>
+            <version>${modmenu.version}</version>
             <scope>provided</scope>
             <exclusions>
                 <exclusion>

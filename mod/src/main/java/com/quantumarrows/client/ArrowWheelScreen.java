@@ -119,7 +119,7 @@ public final class ArrowWheelScreen extends Screen {
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        if (minecraft.options.keyPickItem.matchesMouse(event)) {
+        if (QuantumArrowsClient.WHEEL_KEY.matchesMouse(event)) {
             finish();
             return true;
         }
@@ -137,7 +137,7 @@ public final class ArrowWheelScreen extends Screen {
 
     @Override
     public boolean keyReleased(KeyEvent event) {
-        if (minecraft.options.keyPickItem.matches(event)) {
+        if (QuantumArrowsClient.WHEEL_KEY.matches(event)) {
             finish();
             return true;
         }
@@ -145,7 +145,7 @@ public final class ArrowWheelScreen extends Screen {
     }
 
     private boolean isTriggerHeld() {
-        InputConstants.Key key = InputConstants.getKey(minecraft.options.keyPickItem.saveString());
+        InputConstants.Key key = InputConstants.getKey(QuantumArrowsClient.WHEEL_KEY.saveString());
         if (key.getType() == InputConstants.Type.KEYBOARD) {
             return InputConstants.isKeyDown(key.getValue());
         }

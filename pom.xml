@@ -34,6 +34,8 @@
         <fabric.loader.version>0.19.5</fabric.loader.version>
         <fabric.api.base.version>2.0.6+fcdff87f5d</fabric.api.base.version>
         <fabric.lifecycle.events.version>4.1.9+ffef5f675d</fabric.lifecycle.events.version>
+        <fabric.key.mapping.version>2.0.8+3434d6d95d</fabric.key.mapping.version>
+        <modmenu.version>21.0.0</modmenu.version>
     </properties>
 
     <modules>
