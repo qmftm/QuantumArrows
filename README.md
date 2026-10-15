@@ -79,8 +79,10 @@ mvn package
 
 ### 릴리즈
 
-`v1.0.0` 처럼 `v` 로 시작하는 태그를 푸시하면 GitHub Actions(`.github/workflows/release.yml`)가
-JDK 25 로 빌드해서 jar 를 첨부한 릴리즈를 자동으로 만듭니다.
+`.github/release-version` 파일의 내용(예: `1.0.0`)을 바꿔서 푸시하면 GitHub Actions(`.github/workflows/release.yml`)가
+JDK 25 로 빌드해서 `v1.0.0` 태그와 jar 가 첨부된 릴리즈를 만듭니다. `v1.0.0` 같은 태그를 직접 푸시하거나
+Actions 탭에서 수동 실행해도 됩니다. 이미 있는 버전의 릴리즈는 다시 만들지 않습니다.
+(버전을 올릴 때는 `pom.xml` 의 `version` 도 같이 올려 주세요.)
 
 ### 구조
 

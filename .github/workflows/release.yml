@@ -1,10 +1,16 @@
 name: Release
 
-# Pushing a tag like v1.0.0 builds the mod and publishes a GitHub release with the jar attached.
+# Publishes a GitHub release with the built jar attached. Any of these starts it:
+#   - pushing a change to .github/release-version (its content is the version, e.g. 1.0.0)
+#   - pushing a tag like v1.0.0
+#   - running the workflow manually (uses .github/release-version)
 on:
   push:
     tags:
       - "v*"
+    paths:
+      - ".github/release-version"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -15,19 +21,43 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            echo "name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=v$(tr -d '[:space:]' < .github/release-version)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip if the release already exists
+        id: exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.tag.outputs.name }}" > /dev/null 2>&1; then
+            echo "Release ${{ steps.tag.outputs.name }} already exists, nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-java@v4
+        if: steps.exists.outputs.skip != 'true'
         with:
           distribution: temurin
           java-version: "25"
           cache: maven
 
       - name: Build
+        if: steps.exists.outputs.skip != 'true'
         run: mvn -B package
 
       - name: Publish release
+        if: steps.exists.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" mod/target/quantumarrows-*.jar \
-            --title "QuantumArrows ${GITHUB_REF_NAME#v}" \
+          TAG="${{ steps.tag.outputs.name }}"
+          gh release create "$TAG" mod/target/quantumarrows-*.jar \
+            --target "$GITHUB_SHA" \
+            --title "QuantumArrows ${TAG#v}" \
             --generate-notes
