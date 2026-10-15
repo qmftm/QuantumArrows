@@ -19,11 +19,13 @@ import net.minecraft.network.chat.Component;
 public final class QuantumArrowsSettingsScreen extends Screen {
     private static final int WIDGET_WIDTH = 220;
     private static final int WIDGET_HEIGHT = 20;
-    private static final int SPACING = 6;
+    private static final int SPACING = 4;
+    private static final int TOP = 32;
 
     private final Screen parent;
     private Button keyButton;
     private boolean listening;
+    private int hintY;
 
     public QuantumArrowsSettingsScreen(Screen parent) {
         super(Component.translatable("quantumarrows.settings.title"));
@@ -34,31 +36,49 @@ public final class QuantumArrowsSettingsScreen extends Screen {
     protected void init() {
         QuantumArrowsConfig config = QuantumArrowsClient.config();
         int x = (width - WIDGET_WIDTH) / 2;
-        int y = height / 4 + 8;
+        int row = 0;
 
         addRenderableWidget(CycleButton.builder(
                         (QuantumArrowsConfig.Activation value) -> Component.literal(value.label()), config.activation)
                 .withValues(QuantumArrowsConfig.Activation.values())
-                .create(x, y, WIDGET_WIDTH, WIDGET_HEIGHT, Component.translatable("quantumarrows.settings.activation"),
+                .create(x, rowY(row++), WIDGET_WIDTH, WIDGET_HEIGHT, Component.translatable("quantumarrows.settings.activation"),
                         (button, value) -> config.activation = value));
 
         keyButton = addRenderableWidget(Button.builder(keyLabel(), button -> {
             listening = true;
             keyButton.setMessage(keyLabel());
-        }).bounds(x, y + WIDGET_HEIGHT + SPACING, WIDGET_WIDTH, WIDGET_HEIGHT).build());
+        }).bounds(x, rowY(row++), WIDGET_WIDTH, WIDGET_HEIGHT).build());
 
         addRenderableWidget(CycleButton.onOffBuilder(config.offhandBow)
-                .create(x, y + (WIDGET_HEIGHT + SPACING) * 2, WIDGET_WIDTH, WIDGET_HEIGHT,
+                .create(x, rowY(row++), WIDGET_WIDTH, WIDGET_HEIGHT,
                         Component.translatable("quantumarrows.settings.offhand"),
                         (button, value) -> config.offhandBow = value));
 
         addRenderableWidget(CycleButton.onOffBuilder(config.autoLoadCrossbow)
-                .create(x, y + (WIDGET_HEIGHT + SPACING) * 3, WIDGET_WIDTH, WIDGET_HEIGHT,
+                .create(x, rowY(row++), WIDGET_WIDTH, WIDGET_HEIGHT,
                         Component.translatable("quantumarrows.settings.crossbow"),
                         (button, value) -> config.autoLoadCrossbow = value));
 
+        addRenderableWidget(CycleButton.onOffBuilder(config.autoFireBow)
+                .create(x, rowY(row++), WIDGET_WIDTH, WIDGET_HEIGHT,
+                        Component.translatable("quantumarrows.settings.autofire"),
+                        (button, value) -> config.autoFireBow = value));
+
+        addRenderableWidget(CycleButton.builder(
+                        (Integer stage) -> Component.literal(stage + "/" + BowAutoFire.STAGES + " (" + BowAutoFire.percent(stage) + "%)"),
+                        config.fireStage)
+                .withValues(java.util.stream.IntStream.rangeClosed(1, BowAutoFire.STAGES).boxed().toList())
+                .create(x, rowY(row++), WIDGET_WIDTH, WIDGET_HEIGHT, Component.translatable("quantumarrows.settings.stage"),
+                        (button, value) -> config.fireStage = value));
+
+        hintY = rowY(row) + 2;
+
         addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
-                .bounds(x, height - 52, WIDGET_WIDTH, WIDGET_HEIGHT).build());
+                .bounds(x, height - 28, WIDGET_WIDTH, WIDGET_HEIGHT).build());
+    }
+
+    private int rowY(int row) {
+        return TOP + row * (WIDGET_HEIGHT + SPACING);
     }
 
     private Component keyLabel() {
@@ -99,9 +119,9 @@ public final class QuantumArrowsSettingsScreen extends Screen {
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
-        graphics.centeredText(font, title, width / 2, height / 4 - 12, 0xFFFFFFFF);
+        graphics.centeredText(font, title, width / 2, 14, 0xFFFFFFFF);
         graphics.centeredText(font, Component.translatable("quantumarrows.settings.activation.hint"),
-                width / 2, height / 4 + 8 + (WIDGET_HEIGHT + SPACING) * 4 + 4, 0xFFA0A0A0);
+                width / 2, hintY, 0xFFA0A0A0);
     }
 
     @Override

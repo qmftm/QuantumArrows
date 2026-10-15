@@ -56,6 +56,7 @@ public final class QuantumArrowsClient implements ClientModInitializer {
     }
 
     private static void onStartTick(Minecraft minecraft) {
+        BowAutoFire.tick(minecraft, config);
         if (minecraft.player == null || minecraft.gui.screen() != null) {
             return;
         }

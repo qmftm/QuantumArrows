@@ -54,6 +54,10 @@ public final class QuantumArrowsConfig {
     public boolean offhandBow = true;
     /** Finish loading a crossbow automatically once it is fully drawn, even while use is still held. */
     public boolean autoLoadCrossbow = true;
+    /** Left click with a bow: click = next draw stage, hold = keep shooting at that stage. */
+    public boolean autoFireBow = true;
+    /** Draw stage, 1 to {@link BowAutoFire#STAGES}. */
+    public int fireStage = BowAutoFire.STAGES;
 
     public static QuantumArrowsConfig load() {
         Path path = path();
@@ -72,6 +76,7 @@ public final class QuantumArrowsConfig {
             LOGGER.warn("Invalid targetSlot {} in {}, using {}", config.targetSlot, path, DEFAULT_TARGET_SLOT);
             config.targetSlot = DEFAULT_TARGET_SLOT;
         }
+        config.fireStage = Math.clamp(config.fireStage, 1, BowAutoFire.STAGES);
         if (config.activation == null) {
             config.activation = Activation.HOLD_ON_BOW;
         }
