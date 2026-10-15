@@ -52,6 +52,8 @@ public final class QuantumArrowsConfig {
     public Activation activation = Activation.HOLD_ON_BOW;
     /** Whether a bow or crossbow held in the offhand counts for {@link Activation#HOLD_ON_BOW}. */
     public boolean offhandBow = true;
+    /** Finish loading a crossbow automatically once it is fully drawn, even while use is still held. */
+    public boolean autoLoadCrossbow = true;
 
     public static QuantumArrowsConfig load() {
         Path path = path();

@@ -8,9 +8,9 @@ Minecraft **26.3** Fabric 클라이언트 모드 — 활(또는 쇠뇌)을 든 �
 |---|---|---|
 | ![](docs/wheel_select.png) | ![](docs/wheel_paged.png) | ![](docs/wheel_warning.png) |
 
-| 모드 메뉴 설정 화면 | 키 설정(Controls) 메뉴 |
-|---|---|
-| ![](docs/settings.png) | ![](docs/controls.png) |
+| 모드 메뉴 설정 화면 | 키 설정(Controls) 메뉴 | 쇠뇌 |
+|---|---|---|
+| ![](docs/settings.png) | ![](docs/controls.png) | ![](docs/wheel_crossbow.png) |
 
 ## 설치
 
@@ -29,6 +29,10 @@ Minecraft **26.3** Fabric 클라이언트 모드 — 활(또는 쇠뇌)을 든 �
   - `EVERYTHING`: 무엇을 들고 있든 항상 열립니다. 활/쇠뇌가 없으면 일반 화살 기준으로 보여 줍니다.
   - `DISABLE`: 휠을 사용하지 않습니다. 키는 원래 기능만 합니다.
   - 휠이 열릴 때는 같은 버튼에 묶인 바닐라 블록 선택은 동작하지 않습니다.
+- **쇠뇌 지원**: 활과 똑같이 쇠뇌를 들었을 때도 휠이 열리고, 고른 화살이 쇠뇌에 장전됩니다.
+- **쇠뇌 자동 장전** (기본 켜짐): 쇠뇌는 우클릭을 계속 누르고 있으면 충전이 끝난 뒤에도 마지막 장전 모션에 멈춰 있습니다.
+  이 설정이 켜져 있으면 충전이 끝나는 순간 자동으로 우클릭을 놓은 것으로 처리해서 장전을 끝냅니다.
+  버튼을 계속 누르고 있어도 장전된 쇠뇌가 바로 발사되지는 않고, 다시 눌러야 발사됩니다.
 - **왼손 활 인정** (기본 켜짐): `HOLD ON BOW` 에서 보조손(왼손)에 든 활/쇠뇌도 발동 조건으로 인정합니다. 끄면 주손에 든 활만 인정합니다.
 - 화살은 종류별로 묶어서 보여 줍니다 (일반 / 분광 / 물약 종류별 화살은 각각 따로, 총 개수 표시).
   1000개 이상은 `1.2K`처럼 줄여서 표시합니다.
@@ -55,11 +59,12 @@ Minecraft **26.3** Fabric 클라이언트 모드 — 활(또는 쇠뇌)을 든 �
 {
   "targetSlot": 10,
   "activation": "HOLD_ON_BOW",
-  "offhandBow": true
+  "offhandBow": true,
+  "autoLoadCrossbow": true
 }
 ```
 
-`activation` 은 `HOLD_ON_BOW`, `EVERYTHING`, `DISABLE` 중 하나이며 `offhandBow` 는 `true`/`false` 입니다. 둘 다 Mod Menu 설정 화면에서도 바꿀 수 있습니다.
+`activation` 은 `HOLD_ON_BOW`, `EVERYTHING`, `DISABLE` 중 하나이며 `offhandBow`, `autoLoadCrossbow` 는 `true`/`false` 입니다. 둘 다 Mod Menu 설정 화면에서도 바꿀 수 있습니다.
 
 | 값 | 위치 |
 |---|---|

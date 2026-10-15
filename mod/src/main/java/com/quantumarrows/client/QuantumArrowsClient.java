@@ -6,8 +6,10 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ProjectileWeaponItem;
 
@@ -35,9 +37,30 @@ public final class QuantumArrowsClient implements ClientModInitializer {
         ClientTickEvents.START_CLIENT_TICK.register(QuantumArrowsClient::onStartTick);
     }
 
+    /**
+     * Holding use on a crossbow leaves the player "using" it at the last drawing stage even after it is
+     * loaded. Once the draw is complete, mark the use key as released: vanilla's key handling (which runs
+     * right after this) then ends the use itself. The key stays "up" until pressed again, so the loaded
+     * crossbow is not fired by the button that is still held.
+     */
+    private static void autoLoadCrossbow(Minecraft minecraft) {
+        LocalPlayer player = minecraft.player;
+        if (!player.isUsingItem()) {
+            return;
+        }
+        ItemStack stack = player.getUseItem();
+        if (stack.getItem() instanceof CrossbowItem && (CrossbowItem.isCharged(stack)
+                || player.getTicksUsingItem() >= CrossbowItem.getChargeDuration(stack, player))) {
+            minecraft.options.keyUse.setDown(false);
+        }
+    }
+
     private static void onStartTick(Minecraft minecraft) {
         if (minecraft.player == null || minecraft.gui.screen() != null) {
             return;
+        }
+        if (config.autoLoadCrossbow) {
+            autoLoadCrossbow(minecraft);
         }
         if (config.activation == QuantumArrowsConfig.Activation.DISABLE) {
             return;

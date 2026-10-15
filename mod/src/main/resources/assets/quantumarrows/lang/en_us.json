@@ -10,5 +10,6 @@
   "quantumarrows.settings.activation": "Activation",
   "quantumarrows.settings.activation.hint": "HOLD ON BOW: only while holding a bow or crossbow. EVERYTHING: always. DISABLE: never.",
   "quantumarrows.settings.key": "Wheel Key: %s",
-  "quantumarrows.settings.offhand": "Offhand Bow"
+  "quantumarrows.settings.offhand": "Offhand Bow",
+  "quantumarrows.settings.crossbow": "Crossbow Auto Load"
 }
