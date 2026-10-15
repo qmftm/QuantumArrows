@@ -12,6 +12,13 @@ Minecraft **26.3** Fabric 클라이언트 모드 — 활(또는 쇠뇌)을 든 �
 |---|---|
 | ![](docs/settings.png) | ![](docs/controls.png) |
 
+## 설치
+
+1. [Fabric Loader](https://fabricmc.net/use/) 0.19.5 이상과 Fabric API(26.3용)를 설치합니다.
+2. [Releases](../../releases)에서 `quantumarrows-<버전>.jar` 를 받아 `.minecraft/mods/` 에 넣습니다.
+3. (선택) 설정 화면을 쓰려면 [Mod Menu](https://modrinth.com/mod/modmenu) 21.0.0 이상(26.3용)도 설치합니다.
+   없어도 모드는 동작하고, 키는 키 설정 메뉴에서 바꿀 수 있습니다.
+
 ## 동작
 
 - **휠 키(기본: 휠 클릭)** 를 누르고 있으면 휠이 열립니다. 이 키는 `설정 > 조작 > 키 설정`의 *QuantumArrows* 항목과
@@ -68,9 +75,12 @@ Minecraft **26.3** Fabric 클라이언트 모드 — 활(또는 쇠뇌)을 든 �
 mvn package
 ```
 
-결과물: `mod/target/quantumarrows-1.0.0.jar` → `.minecraft/mods/`에 넣고,
-[Fabric Loader](https://fabricmc.net/use/) 0.19.5+ 와 Fabric API(26.3용)를 함께 설치하세요.
-설정 화면을 쓰려면 [Mod Menu](https://modrinth.com/mod/modmenu) 21.0.0 이상(26.3용)도 설치합니다 (없어도 모드는 동작하고, 키는 키 설정 메뉴에서 바꿀 수 있습니다).
+결과물: `mod/target/quantumarrows-<버전>.jar`
+
+### 릴리즈
+
+`v1.0.0` 처럼 `v` 로 시작하는 태그를 푸시하면 GitHub Actions(`.github/workflows/release.yml`)가
+JDK 25 로 빌드해서 jar 를 첨부한 릴리즈를 자동으로 만듭니다.
 
 ### 구조
 
