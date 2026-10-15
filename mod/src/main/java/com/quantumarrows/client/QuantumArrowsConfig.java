@@ -50,6 +50,8 @@ public final class QuantumArrowsConfig {
 
     public int targetSlot = DEFAULT_TARGET_SLOT;
     public Activation activation = Activation.HOLD_ON_BOW;
+    /** Whether a bow or crossbow held in the offhand counts for {@link Activation#HOLD_ON_BOW}. */
+    public boolean offhandBow = true;
 
     public static QuantumArrowsConfig load() {
         Path path = path();

@@ -33,12 +33,12 @@ public final class ArrowInventory {
         return (slot >= 0 && slot < MAIN_SIZE) || slot == OFFHAND;
     }
 
-    /** The bow/crossbow the player holds, main hand first, or {@code null}. */
-    public static ItemStack heldWeapon(LocalPlayer player) {
+    /** The bow/crossbow the player holds, main hand first (offhand only if allowed), or {@code null}. */
+    public static ItemStack heldWeapon(LocalPlayer player, boolean includeOffhand) {
         if (player.getMainHandItem().getItem() instanceof ProjectileWeaponItem) {
             return player.getMainHandItem();
         }
-        if (player.getOffhandItem().getItem() instanceof ProjectileWeaponItem) {
+        if (includeOffhand && player.getOffhandItem().getItem() instanceof ProjectileWeaponItem) {
             return player.getOffhandItem();
         }
         return null;

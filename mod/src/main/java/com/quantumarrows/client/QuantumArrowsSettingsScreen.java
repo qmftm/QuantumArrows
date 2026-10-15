@@ -47,6 +47,11 @@ public final class QuantumArrowsSettingsScreen extends Screen {
             keyButton.setMessage(keyLabel());
         }).bounds(x, y + WIDGET_HEIGHT + SPACING, WIDGET_WIDTH, WIDGET_HEIGHT).build());
 
+        addRenderableWidget(CycleButton.onOffBuilder(config.offhandBow)
+                .create(x, y + (WIDGET_HEIGHT + SPACING) * 2, WIDGET_WIDTH, WIDGET_HEIGHT,
+                        Component.translatable("quantumarrows.settings.offhand"),
+                        (button, value) -> config.offhandBow = value));
+
         addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
                 .bounds(x, height - 52, WIDGET_WIDTH, WIDGET_HEIGHT).build());
     }
@@ -91,7 +96,7 @@ public final class QuantumArrowsSettingsScreen extends Screen {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         graphics.centeredText(font, title, width / 2, height / 4 - 12, 0xFFFFFFFF);
         graphics.centeredText(font, Component.translatable("quantumarrows.settings.activation.hint"),
-                width / 2, height / 4 + 8 + (WIDGET_HEIGHT + SPACING) * 2 + 4, 0xFFA0A0A0);
+                width / 2, height / 4 + 8 + (WIDGET_HEIGHT + SPACING) * 3 + 4, 0xFFA0A0A0);
     }
 
     @Override

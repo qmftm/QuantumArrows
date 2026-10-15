@@ -42,7 +42,7 @@ public final class QuantumArrowsClient implements ClientModInitializer {
         if (config.activation == QuantumArrowsConfig.Activation.DISABLE) {
             return;
         }
-        ItemStack weapon = ArrowInventory.heldWeapon(minecraft.player);
+        ItemStack weapon = ArrowInventory.heldWeapon(minecraft.player, config.offhandBow);
         if (weapon == null && config.activation != QuantumArrowsConfig.Activation.EVERYTHING) {
             // Not active: leave the clicks alone so the key keeps its other bindings' behavior.
             return;

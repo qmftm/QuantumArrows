@@ -9,5 +9,6 @@
   "quantumarrows.settings.title": "QuantumArrows 설정",
   "quantumarrows.settings.activation": "발동 조건",
   "quantumarrows.settings.activation.hint": "HOLD ON BOW: 활/쇠뇌를 들 때만, EVERYTHING: 항상, DISABLE: 사용 안 함",
-  "quantumarrows.settings.key": "휠 키: %s"
+  "quantumarrows.settings.key": "휠 키: %s",
+  "quantumarrows.settings.offhand": "왼손 활 인정"
 }
