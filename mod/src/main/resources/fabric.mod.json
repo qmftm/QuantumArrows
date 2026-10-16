@@ -25,5 +25,6 @@
   },
   "suggests": {
     "modmenu": "*"
-  }
+  },
+  "icon": "assets/quantumarrows/icon.png"
 }
