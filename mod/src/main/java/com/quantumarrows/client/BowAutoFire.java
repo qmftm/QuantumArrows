@@ -11,10 +11,16 @@ import net.minecraft.world.item.ItemStack;
  * With a bow in the main hand, the left mouse button controls the draw stage instead of attacking:
  * a short click moves to the next stage, and holding it shoots again and again at the chosen stage.
  *
- * <p>Stage {@code n} of {@value #STAGES} releases the arrow after {@code n / STAGES} of the full draw time.
+ * <p>Each stage releases the arrow after a fixed draw time, from the shortest possible shot to a full draw.
  */
 public final class BowAutoFire {
-    public static final int STAGES = 4;
+    /**
+     * Draw time of each stage in ticks. Stage 1 is the shortest draw that still shoots (an arrow needs at
+     * least 10% power, which a bow reaches after 3 ticks); the last stage is the full 20-tick draw.
+     */
+    private static final int[] STAGE_TICKS = {3, 10, 15, BowItem.MAX_DRAW_DURATION};
+    public static final int STAGES = STAGE_TICKS.length;
+
     /**
      * Ticks the button must stay down before it counts as "held" instead of a click. This is the only wait
      * before the first shot; the pause between later shots is {@link #RESTART_DELAY}.
@@ -32,12 +38,13 @@ public final class BowAutoFire {
     private BowAutoFire() {
     }
 
+    /** The stage's draw time as a percentage of a full draw. */
     public static int percent(int stage) {
-        return stage * 100 / STAGES;
+        return stageTicks(stage) * 100 / BowItem.MAX_DRAW_DURATION;
     }
 
     private static int stageTicks(int stage) {
-        return stage * BowItem.MAX_DRAW_DURATION / STAGES;
+        return STAGE_TICKS[stage - 1];
     }
 
     private static void reset(Minecraft minecraft) {
