@@ -15,8 +15,11 @@ import net.minecraft.world.item.ItemStack;
  */
 public final class BowAutoFire {
     public static final int STAGES = 4;
-    /** Ticks the button must stay down before it counts as "held" instead of a click. */
-    private static final int HOLD_TICKS = 5;
+    /**
+     * Ticks the button must stay down before it counts as "held" instead of a click. This is the only wait
+     * before the first shot; the pause between later shots is {@link #RESTART_DELAY}.
+     */
+    private static final int HOLD_TICKS = 3;
     private static final int RESTART_DELAY = 3;
 
     private static int leftHeldTicks;
@@ -68,6 +71,10 @@ public final class BowAutoFire {
         }
 
         if (leftDown) {
+            if (leftHeldTicks == 0) {
+                // A new press: the first shot never waits for the pause that follows a previous shot.
+                cooldown = 0;
+            }
             leftHeldTicks++;
             if (leftHeldTicks > HOLD_TICKS) {
                 autoMode = true;

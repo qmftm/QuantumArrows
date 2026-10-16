@@ -1,7 +1,5 @@
 package com.quantumarrows.client;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-
 import java.util.Arrays;
 
 /**
@@ -82,15 +80,56 @@ final class VectorMesh {
         return out;
     }
 
-    /** Draws the mesh centered at ({@code cx}, {@code cy}) in physical pixels; the pose must already be unscaled. */
-    void draw(GuiGraphicsExtractor graphics, int cx, int cy, int argb) {
-        int baseAlpha = argb >>> 24;
+    /** Pixel bounds {@code {minX, minY, maxX, maxY}} (max exclusive) relative to the center; all zero if empty. */
+    int[] bounds() {
+        int minX = Integer.MAX_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        for (int i = 0; i < size; i += STRIDE) {
+            minX = Math.min(minX, runs[i]);
+            maxX = Math.max(maxX, runs[i + 1]);
+            minY = Math.min(minY, runs[i + 2]);
+            maxY = Math.max(maxY, runs[i + 2] + 1);
+        }
+        return size == 0 ? new int[4] : new int[]{minX, minY, maxX, maxY};
+    }
+
+    /**
+     * Paints the mesh in {@code argb} over {@code pixels} (ARGB, {@code width} wide) whose top-left pixel is
+     * at ({@code originX}, {@code originY}) relative to the mesh center.
+     */
+    void blendInto(int[] pixels, int width, int originX, int originY, int argb) {
+        int colorAlpha = argb >>> 24;
         int rgb = argb & 0xFFFFFF;
         for (int i = 0; i < size; i += STRIDE) {
-            int alpha = runs[i + 3] * baseAlpha / 255;
-            int y = cy + runs[i + 2];
-            graphics.fill(cx + runs[i], y, cx + runs[i + 1], y + 1, alpha << 24 | rgb);
+            int alpha = runs[i + 3] * colorAlpha / 255;
+            if (alpha == 0) {
+                continue;
+            }
+            int src = alpha << 24 | rgb;
+            int row = (runs[i + 2] - originY) * width - originX;
+            for (int x = runs[i]; x < runs[i + 1]; x++) {
+                pixels[row + x] = over(pixels[row + x], src);
+            }
         }
+    }
+
+    /** Source-over blending of non-premultiplied ARGB colors. */
+    private static int over(int dst, int src) {
+        int sa = src >>> 24;
+        if (sa == 255 || dst >>> 24 == 0) {
+            return src;
+        }
+        int da = dst >>> 24;
+        int outA = sa + da * (255 - sa) / 255;
+        int result = outA << 24;
+        for (int shift = 0; shift <= 16; shift += 8) {
+            int sc = src >>> shift & 0xFF;
+            int dc = dst >>> shift & 0xFF;
+            result |= (sc * sa + dc * da * (255 - sa) / 255) / outA << shift;
+        }
+        return result;
     }
 
     // --- Distance functions -------------------------------------------------------------
@@ -98,24 +137,6 @@ final class VectorMesh {
     /** Ring of radius {@code radius} and half thickness {@code halfWidth}. */
     static double ring(double x, double y, double radius, double halfWidth) {
         return Math.abs(Math.sqrt(x * x + y * y) - radius) - halfWidth;
-    }
-
-    /**
-     * Isosceles triangle whose tip points away from the origin along {@code angle} (clockwise from
-     * straight up). The tip is at {@code tipRadius}, the base {@code length} closer in and
-     * {@code halfBase} to each side. Signed distance is exact along the edges, which is all coverage needs.
-     */
-    static double triangle(double x, double y, double angle, double tipRadius, double length, double halfBase) {
-        double ux = Math.sin(angle);
-        double uy = -Math.cos(angle);
-        double along = x * ux + y * uy - (tipRadius - length);
-        double across = Math.abs(-x * uy + y * ux);
-        double baseDist = -along;
-        double edgeLen = Math.sqrt(length * length + halfBase * halfBase);
-        // The slanted side runs from the tip (length, 0) to the base corner (0, halfBase) in
-        // (along, across) coordinates; its outward normal is (halfBase, length) / edgeLen.
-        double sideDist = ((along - length) * halfBase + across * length) / edgeLen;
-        return Math.max(baseDist, sideDist);
     }
 
     /**

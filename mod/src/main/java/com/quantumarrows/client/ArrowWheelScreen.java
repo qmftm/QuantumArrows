@@ -31,29 +31,12 @@ public final class ArrowWheelScreen extends Screen {
     private static final int NEXT_SEGMENT = 2;
 
     private static final int DEAD_ZONE = 14;
-    private static final int RING_HALF_WIDTH = 15;
+    private static final int RING_HALF_WIDTH = WheelArt.RING_HALF_WIDTH;
 
-    // Shape metrics in GUI units; meshes are rasterized at the native pixel resolution.
-    private static final double HIGHLIGHT_INSET = 1.5;
-    private static final double HIGHLIGHT_GAP = 1.0;
-    private static final double DIVIDER_HALF_WIDTH = 0.35;
-    private static final double BORDER_HALF_WIDTH = 0.3;
-    private static final double POINTER_LENGTH = 7.0;
-    private static final double POINTER_HALF_BASE = 2.4;
-    /** Gap between the pointer tip and the inner edge of the highlighted segment. */
-    private static final double POINTER_GAP = 1.5;
-    private static final double CHEVRON_SIZE = 4.0;
-    private static final double CHEVRON_HALF_WIDTH = 0.9;
     private static final int COUNT_MAX_WIDTH = 16;
     private static final int CURRENT_ITEM_BOTTOM_OFFSET = 68;
 
     private static final int COLOR_DIM = 0x40000000;
-    private static final int COLOR_RING = 0xA0101018;
-    private static final int COLOR_BORDER = 0x50FFFFFF;
-    private static final int COLOR_DIVIDER = 0x50FFFFFF;
-    private static final int COLOR_HIGHLIGHT = 0xD060D8D8;
-    private static final int COLOR_POINTER = 0xFF7AE6E0;
-    private static final int COLOR_CHEVRON = 0xFFFFFFFF;
     private static final int COLOR_TEXT = 0xFFFFFFFF;
     private static final int COLOR_SUBTEXT = 0xFFB0B0B0;
     private static final int COLOR_WARNING = 0xFFFF7060;
@@ -71,13 +54,6 @@ public final class ArrowWheelScreen extends Screen {
     private int hoveredSegment = -1;
     private boolean finished;
 
-    private int meshScale;
-    private VectorMesh ringMesh;
-    private VectorMesh borderMesh;
-    private VectorMesh dividerMesh;
-    private VectorMesh chevronMesh;
-    private VectorMesh[] highlightMeshes;
-    private VectorMesh[] pointerMeshes;
 
     public ArrowWheelScreen(LocalPlayer player, List<ArrowInventory.ArrowType> types, Predicate<ItemStack> ammo,
                             int targetSlot) {
@@ -227,25 +203,10 @@ public final class ArrowWheelScreen extends Screen {
         boolean highlight = hoveredType >= 0 || (paged && hoveredSegment == NEXT_SEGMENT);
 
         int scale = minecraft.getWindow().getGuiScale();
-        if (scale != meshScale) {
-            buildMeshes(scale);
-        }
-        int pcx = cx * scale;
-        int pcy = cy * scale;
+        WheelArt.Variant art = WheelArt.acquire(new WheelArt.Key(scale, segments, radius, paged ? NEXT_SEGMENT : -1));
         graphics.pose().pushMatrix();
         graphics.pose().scale(1.0f / scale);
-        ringMesh.draw(graphics, pcx, pcy, COLOR_RING);
-        if (highlight) {
-            highlightMesh(hoveredSegment).draw(graphics, pcx, pcy, COLOR_HIGHLIGHT);
-            pointerMesh(hoveredSegment).draw(graphics, pcx, pcy, COLOR_POINTER);
-        }
-        if (dividerMesh != null) {
-            dividerMesh.draw(graphics, pcx, pcy, COLOR_DIVIDER);
-        }
-        if (chevronMesh != null) {
-            chevronMesh.draw(graphics, pcx, pcy, COLOR_CHEVRON);
-        }
-        borderMesh.draw(graphics, pcx, pcy, COLOR_BORDER);
+        art.draw(graphics, cx * scale, cy * scale, highlight ? hoveredSegment : -1);
         graphics.pose().popMatrix();
 
         for (int segment = 0; segment < segments; segment++) {
@@ -318,76 +279,5 @@ public final class ArrowWheelScreen extends Screen {
             return tenths / 10 + "." + tenths % 10 + "K";
         }
         return count / 1000 + "K";
-    }
-
-    private void buildMeshes(int scale) {
-        meshScale = scale;
-        double r = radius * scale;
-        double w = RING_HALF_WIDTH * scale;
-        double step = Math.PI * 2 / segments;
-
-        ringMesh = VectorMesh.rasterize((x, y) -> VectorMesh.ring(x, y, r, w), r - w, r + w);
-        double bw = Math.max(0.6, BORDER_HALF_WIDTH * scale);
-        borderMesh = VectorMesh.rasterize(
-                (x, y) -> Math.abs(VectorMesh.ring(x, y, r, w - bw)) - bw, r - w, r + w);
-        if (segments > 1) {
-            double dw = Math.max(0.6, DIVIDER_HALF_WIDTH * scale);
-            double r0 = r - w + 2 * scale;
-            double r1 = r + w - 2 * scale;
-            dividerMesh = VectorMesh.rasterize((x, y) -> {
-                double best = Double.MAX_VALUE;
-                for (int i = 0; i < segments; i++) {
-                    best = Math.min(best, VectorMesh.radialSegment(x, y, (i + 0.5) * step, r0, r1, dw));
-                }
-                return best;
-            }, r0, r1);
-        } else {
-            dividerMesh = null;
-        }
-        if (paged) {
-            // ">" centered on the right-hand segment.
-            double a = NEXT_SEGMENT * step;
-            double px = Math.sin(a) * r;
-            double py = -Math.cos(a) * r;
-            double size = CHEVRON_SIZE * scale;
-            double hw = CHEVRON_HALF_WIDTH * scale;
-            chevronMesh = VectorMesh.rasterize((x, y) -> Math.min(
-                    VectorMesh.segment(x, y, px - size / 2, py - size, px + size / 2, py, hw),
-                    VectorMesh.segment(x, y, px + size / 2, py, px - size / 2, py + size, hw)), r - w, r + w);
-        } else {
-            chevronMesh = null;
-        }
-        highlightMeshes = new VectorMesh[segments];
-        pointerMeshes = new VectorMesh[segments];
-    }
-
-    private VectorMesh highlightMesh(int segment) {
-        if (highlightMeshes[segment] == null) {
-            int scale = meshScale;
-            double r = radius * scale;
-            double w = (RING_HALF_WIDTH - HIGHLIGHT_INSET) * scale;
-            double step = Math.PI * 2 / segments;
-            double angle = segment * step;
-            double gap = HIGHLIGHT_GAP * scale;
-            highlightMeshes[segment] = VectorMesh.rasterize(segments == 1
-                    ? (x, y) -> VectorMesh.ring(x, y, r, w)
-                    : (x, y) -> Math.max(VectorMesh.ring(x, y, r, w), VectorMesh.wedge(x, y, angle, step / 2) + gap),
-                    r - w, r + w);
-        }
-        return highlightMeshes[segment];
-    }
-
-    /** Triangle inside the ring whose tip points at the highlighted segment. */
-    private VectorMesh pointerMesh(int segment) {
-        if (pointerMeshes[segment] == null) {
-            int scale = meshScale;
-            double angle = segment * Math.PI * 2 / segments;
-            double tip = (radius - RING_HALF_WIDTH - POINTER_GAP) * scale;
-            double length = POINTER_LENGTH * scale;
-            double halfBase = POINTER_HALF_BASE * scale;
-            pointerMeshes[segment] = VectorMesh.rasterize(
-                    (x, y) -> VectorMesh.triangle(x, y, angle, tip, length, halfBase), tip - length - 1, tip + 1);
-        }
-        return pointerMeshes[segment];
     }
 }
