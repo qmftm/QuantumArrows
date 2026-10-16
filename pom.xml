@@ -6,7 +6,7 @@
 
     <groupId>com.quantumarrows</groupId>
     <artifactId>quantumarrows-parent</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
     <packaging>pom</packaging>
 
     <name>QuantumArrows (parent)</name>

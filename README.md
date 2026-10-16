@@ -16,7 +16,7 @@ Minecraft **26.3** Fabric 클라이언트 모드 — 활(또는 쇠뇌)을 든 �
 
 1. [Fabric Loader](https://fabricmc.net/use/) 0.19.5 이상과 Fabric API(26.3용)를 설치합니다.
 2. [Releases](../../releases/latest) 에서 최신 `quantumarrows-<버전>.jar` 를 받아 `.minecraft/mods/` 에 넣습니다
-   (변경 내용은 [릴리즈 노트](docs/RELEASE_NOTES_1.0.1.md)).
+   (변경 내용은 [릴리즈 노트](docs/RELEASE_NOTES_1.1.0.md)).
 3. (선택) 설정 화면을 쓰려면 [Mod Menu](https://modrinth.com/mod/modmenu) 21.0.0 이상(26.3용)도 설치합니다.
    없어도 모드는 동작하고, 키는 키 설정 메뉴에서 바꿀 수 있습니다.
 
@@ -96,8 +96,8 @@ mvn package
 
 ### 릴리즈
 
-`.github/release-version` 파일의 내용(예: `1.0.1`)을 바꿔서 푸시하면 GitHub Actions(`.github/workflows/release.yml`)가
-JDK 25 로 빌드해서 `v1.0.1` 태그와 jar 가 첨부된 릴리즈를 만듭니다. `v1.0.1` 같은 태그를 직접 푸시하거나
+`.github/release-version` 파일의 내용(예: `1.1.0`)을 바꿔서 푸시하면 GitHub Actions(`.github/workflows/release.yml`)가
+JDK 25 로 빌드해서 `v1.1.0` 태그와 jar 가 첨부된 릴리즈를 만듭니다. `v1.1.0` 같은 태그를 직접 푸시하거나
 Actions 탭에서 수동 실행해도 됩니다. 이미 있는 버전의 릴리즈는 다시 만들지 않습니다. 릴리즈 본문은 `docs/RELEASE_NOTES_<버전>.md` 가 있으면 그것을 씁니다.
 (버전을 올릴 때는 `pom.xml` 의 `version` 도 같이 올려 주세요.)
 
